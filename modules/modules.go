@@ -2,7 +2,9 @@ package modules
 
 import (
 	"context"
+	"io"
 
+	"github.com/cuckflong/vasago/agent"
 	"github.com/cuckflong/vasago/job"
 )
 
@@ -15,19 +17,28 @@ import (
 type LeaderCore struct {
 }
 
-type AgentCore struct {
-}
-
 type System interface {
-	CreateJob(ctx context.Context) *job.LeaderAgentJob
+	CreateJob(ctx context.Context) job.LeaderAgentJob
+	ID() string
 }
 
 type Leader interface {
-	OnCommand(args interface{}, targets []*System)
+}
+
+type Commandable interface {
+	OnCommand(args interface{}, targets []System, resp CommandResponse) error
+	Args() interface{} // TODO: support concrete type and structure (maybe only concrete type and use a
+	// helper function to generate from structure)
+	Validate(args interface{}) error
+}
+
+type CommandResponse interface {
+	Logger() io.Writer
+	UseAutomaticProgress()
 }
 
 type Agent interface {
-	OnReceiveJob(job *job.AgentJob)
+	OnReceiveJob(job job.AgentJob) error
 }
 
 type Selectable interface {
@@ -42,7 +53,7 @@ type ConnectionEvents interface {
 }
 
 type LeaderInit func(core *LeaderCore) (Leader, error)
-type AgentInit func(core *AgentCore) (Agent, error)
+type AgentInit func(core *agent.Core) (Agent, error)
 
 func Register(moduleName string, leader LeaderInit, agent AgentInit) {
 

@@ -2,6 +2,6 @@ package agent
 
 import "net"
 
-type Agent struct {
+type Core struct {
 	Dialer net.Dialer
 }

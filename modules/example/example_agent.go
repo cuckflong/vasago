@@ -4,10 +4,15 @@ import (
 	"encoding/gob"
 	"time"
 
+	"github.com/cuckflong/vasago/agent"
 	"github.com/cuckflong/vasago/job"
+	"github.com/cuckflong/vasago/modules"
 )
 
+const ModuleName = "example"
+
 type Agent struct {
+	core *agent.Core
 }
 
 type JobReq struct {
@@ -37,4 +42,17 @@ func (a *Agent) OnReceiveJob(jb job.AgentJob) error {
 	}
 
 	return jb.Encode(JobResp{Response: "You said: " + jobReq.PingMessage})
+}
+
+func init() {
+	modules.Register(ModuleName,
+		func(core *modules.LeaderCore) (modules.Leader, error) {
+			return &Leader{}, nil
+		},
+		func(core *agent.Core) (modules.Agent, error) {
+			return &Agent{
+				core: core,
+			}, nil
+		},
+	)
 }

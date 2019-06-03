@@ -29,6 +29,8 @@ type LeaderAgentJob interface {
 	Read(data []byte) (int, error)
 	Decode(data interface{}) error
 
+	Cancel(err error)
+
 	Status() <-chan int
 	Context() context.Context
 
