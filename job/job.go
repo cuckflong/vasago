@@ -3,6 +3,8 @@ package job
 import (
 	"context"
 	"io"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Status int
@@ -19,7 +21,7 @@ const (
 type LeaderAgentJob interface {
 	ID() string
 
-	Logger() io.Writer
+	Logger() logrus.FieldLogger
 	LogOutput() io.Reader
 
 	Write(data []byte) (int, error)
@@ -40,7 +42,7 @@ type LeaderAgentJob interface {
 type AgentJob interface {
 	ID() string
 
-	Logger() io.Writer
+	Logger() logrus.FieldLogger
 	Context() context.Context
 
 	Read(data []byte) (int, error)

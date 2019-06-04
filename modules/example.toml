@@ -1,0 +1,10 @@
+module_name = "ICMP ping"
+
+shared_config = 10
+shared_string = "hello"
+
+[command]
+default_thing = 10
+
+[network]
+default_port = 1010

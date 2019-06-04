@@ -46,13 +46,17 @@ func (a *Agent) OnReceiveJob(jb job.AgentJob) error {
 
 func init() {
 	modules.Register(ModuleName,
-		func(core *modules.LeaderCore) (modules.Leader, error) {
-			return &Leader{}, nil
-		},
-		func(core *agent.Core) (modules.Agent, error) {
-			return &Agent{
+		func(core modules.LeaderCore) (modules.Leader, error) {
+			return &Leader{
 				core: core,
+			}, nil
+		},
+		func(core agent.Core) (modules.Agent, error) {
+			return &Agent{
+				core: &core,
 			}, nil
 		},
 	)
 }
+
+var _ modules.CommandProvider = (*Leader)(nil)

@@ -2,10 +2,11 @@ package modules
 
 import (
 	"context"
-	"io"
+	"reflect"
 
 	"github.com/cuckflong/vasago/agent"
 	"github.com/cuckflong/vasago/job"
+	"github.com/sirupsen/logrus"
 )
 
 // events we want:
@@ -14,7 +15,34 @@ import (
 // on reconnect
 // on leave
 
-type LeaderCore struct {
+type LeaderCore interface {
+	GetDefaultProvider(typ ProviderType) interface{}
+	GetProviderConcrete(provider interface{}) bool
+}
+
+type LeaderImpl struct {
+}
+
+func (l *LeaderImpl) GetProviderConcrete(provider interface{}) {
+	want := reflect.TypeOf(provider)
+	for _, loadedModule := range registeredLeaders {
+		if reflect.TypeOf(loadedModule) == want {
+			reflect.ValueOf(provider).Elem().Set(reflect.ValueOf(loadedModule))
+			return
+		}
+	}
+
+	return
+}
+
+func (l *LeaderImpl) GetDefaultProvider(want ProviderType) interface{} {
+	for _, loadedModule := range registeredLeaders {
+		if GetProviderType(&loadedModule) == want {
+			return loadedModule
+		}
+	}
+
+	return nil
 }
 
 type System interface {
@@ -25,15 +53,14 @@ type System interface {
 type Leader interface {
 }
 
-type Commandable interface {
-	OnCommand(args interface{}, targets []System, resp CommandResponse) error
-	Args() interface{} // TODO: support concrete type and structure (maybe only concrete type and use a
+type Configuration interface {
+	ConfigDesc(typ ProviderType) interface{} // TODO: support concrete type and structure (maybe only concrete type and use a
 	// helper function to generate from structure)
-	Validate(args interface{}) error
+	SetConfig(typ ProviderType, config interface{}) error
 }
 
 type CommandResponse interface {
-	Logger() io.Writer
+	Logger() logrus.FieldLogger
 	UseAutomaticProgress()
 }
 
@@ -52,9 +79,24 @@ type ConnectionEvents interface {
 	OnLeave(system *System)
 }
 
-type LeaderInit func(core *LeaderCore) (Leader, error)
-type AgentInit func(core *agent.Core) (Agent, error)
+type LeaderInit func(core LeaderCore) (Leader, error)
+type AgentInit func(core agent.Core) (Agent, error)
 
-func Register(moduleName string, leader LeaderInit, agent AgentInit) {
+var IsLeader = true
 
+var registeredLeaders = make(map[string]Leader)
+var registeredAgents = make(map[string]Agent)
+
+func Register(moduleName string, ldr LeaderInit, agt AgentInit) {
+	var leaderCore LeaderCore
+	// var agentCore agent.Core
+
+	if IsLeader {
+		var err error
+		registeredLeaders[moduleName], err = ldr(leaderCore)
+		if err != nil {
+			panic(err)
+		}
+	}
+	// TODO: etc...
 }

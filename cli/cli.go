@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"strings"
 
 	"github.com/chzyer/readline"
@@ -12,9 +13,14 @@ var completer *readline.PrefixCompleter
 var shellStage = "main"
 
 func Shell() {
+	historyFile, err := ioutil.TempFile("", "vasago_readline_*.tmp")
+	if err != nil {
+		panic(err)
+	}
+
 	prompt, err := readline.NewEx(&readline.Config{
 		Prompt:              "\u001b[34m»>\u001b[0m ",
-		HistoryFile:         "/tmp/readline.tmp",
+		HistoryFile:         historyFile.Name(),
 		AutoComplete:        completer,
 		InterruptPrompt:     "^C",
 		EOFPrompt:           "exit",
@@ -28,7 +34,7 @@ func Shell() {
 
 	for {
 		line, err := prompt.Readline()
-		if err == readline.ErrInterrupt {
+		if err == readline.ErrInterrupt {  
 			if len(line) == 0 {
 				break
 			} else {
