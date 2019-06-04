@@ -11,7 +11,7 @@ import (
 	"github.com/cuckflong/vasago/modules"
 )
 
-const ModuleName = "example"
+const ModuleName = "filetransfer"
 
 type Agent struct {
 	core *agent.Core
@@ -60,14 +60,13 @@ func (a *Agent) OnReceiveJob(jb job.AgentJob) error {
 		}
 
 		return copyWithCtx(jb.Context(), jb, file)
-	} else {
-		file, err := os.Create(jobReq.Path)
-		if err != nil {
-			return err
-		}
-
-		return copyWithCtx(jb.Context(), file, jb)
 	}
+	file, err := os.Create(jobReq.Path)
+	if err != nil {
+		return err
+	}
+
+	return copyWithCtx(jb.Context(), file, jb)
 }
 
 func init() {

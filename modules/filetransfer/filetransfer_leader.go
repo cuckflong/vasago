@@ -27,7 +27,7 @@ func (l *Leader) OnCommand(args interface{}, targets []modules.System, resp modu
 		go func(target modules.System) {
 			job := target.CreateJob(context.Background())
 			if parsedArgs.Receiving {
-				localPath := parsedArgs.LocalPath + "/" + target.ID()
+				localPath := parsedArgs.LocalPath + "." + target.ID()
 				job.Encode(JobReq{
 					Receiving: true,
 					Path:      parsedArgs.RemotePath,
